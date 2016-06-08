@@ -34,6 +34,8 @@ import Error from './vo/Error.js';
 import EventBus from './../core/EventBus.js';
 import Events from './../core/events/Events.js';
 import FactoryMaker from '../core/FactoryMaker.js';
+// @author Armand Zangue
+import WebSocketLogger from './utils/WebSocketLogger.js';
 
 const FRAGMENT_LOADER_ERROR_LOADING_FAILURE = 1;
 const FRAGMENT_LOADER_ERROR_NULL_REQUEST = 2;
@@ -43,6 +45,9 @@ function FragmentLoader(config) {
 
     const context = this.context;
     const eventBus = EventBus(context).getInstance();
+
+    // @author Armand Zangue
+    let wslog = WebSocketLogger(context).getInstance().log;
 
     let instance,
         xhrLoader;
@@ -84,6 +89,8 @@ function FragmentLoader(config) {
 
     function load(request) {
         const report = function (data, error) {
+            // @authot Armand Zangue
+            wslog({id: 1, request: request, response: data, error: error || null});
             eventBus.trigger(Events.LOADING_COMPLETED, {
                 request: request,
                 response: data || null,
@@ -95,9 +102,14 @@ function FragmentLoader(config) {
         if (request) {
             xhrLoader.load({
                 request: request,
-                progress: function () {
+                /**
+                 * @author Armand Zangue
+                 * Added trace to be passed to event suscribers
+                 */
+                progress: function (trace) {
                     eventBus.trigger(Events.LOADING_PROGRESS, {
-                        request: request
+                        request: request,
+                        trace: trace
                     });
                 },
                 success: function (data) {
@@ -131,6 +143,18 @@ function FragmentLoader(config) {
         }
     }
 
+    /**
+     * Abort single request
+     * @param {Object} request
+     * @author Armand Zangue
+     * @instance
+     */
+    function abortRequest(request) {
+        if (xhrLoader) {
+            return xhrLoader.abortRequest(request);
+        }
+    }
+
     function reset() {
         if (xhrLoader) {
             xhrLoader.abort();
@@ -142,7 +166,9 @@ function FragmentLoader(config) {
         checkForExistence: checkForExistence,
         load: load,
         abort: abort,
-        reset: reset
+        reset: reset,
+        // @author Armand Zangue
+        abortRequest: abortRequest
     };
 
     setup();
