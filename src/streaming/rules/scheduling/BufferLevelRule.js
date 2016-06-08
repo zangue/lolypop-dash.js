@@ -56,7 +56,9 @@ function BufferLevelRule(config) {
         let mediaType = mediaInfo.type;
         let metrics = metricsModel.getReadOnlyMetricsFor(mediaType);
         let bufferLevel = dashMetrics.getCurrentBufferLevel(metrics);
-
+        // @author Armand Zangue
+        if (mediaPlayerModel.getLolypopABREnabled())
+            return true;
         return bufferLevel < getBufferTarget(streamProcessor, mediaType);
     }
 
