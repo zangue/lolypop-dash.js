@@ -162,7 +162,11 @@ function XHRLoader(cfg) {
             lastTraceReceivedCount = event.loaded;
 
             if (config.progress) {
-                config.progress();
+                /**
+                 * @author Armand Zangue
+                 * Added trace to be passed to event suscribers
+                 */
+                config.progress(traces[traces.length - 1]);
             }
         };
 
@@ -183,6 +187,13 @@ function XHRLoader(cfg) {
         try {
             const modifiedUrl = requestModifier.modifyRequestURL(request.url);
             const verb = request.checkExistenceOnly ? 'HEAD' : 'GET';
+
+            /*
+             * Add request index attribute to identify request when single abort
+             * is desired
+             * @author Armand Zangue
+             */
+            xhr.requestIndex = request.index;
 
             xhr.open(verb, modifiedUrl, true);
 
@@ -212,7 +223,9 @@ function XHRLoader(cfg) {
 
                 xhrs.push(xhr);
                 xhr.send();
+                //console.log('[XHRLoader] [' + request.mediaType + '] [' + Date.now() + '] Request Index: ' + request.index + ' sent.');
             } else {
+                //console.log('[XHRLoader] [' + request.mediaType + '] [' + Date.now() + '] Request Index: ' + request.index + ' delayed.');
                 // delay
                 let delayedXhr = {xhr: xhr};
                 delayedXhrs.push(delayedXhr);
@@ -244,6 +257,8 @@ function XHRLoader(cfg) {
      */
     function load(config) {
         if (config.request) {
+            //console.log('[XHRLoader] [' + config.request.mediaType + '] [' + Date.now() + '] Next Request: Index = ' + config.request.index + ' duration = ' + config.request.duration + ' start time = ' + config.request.startTime + ' url = ' + config.request.url);
+
             internalLoad(
                 config,
                 mediaPlayerModel.getRetryAttemptsForType(
@@ -261,7 +276,9 @@ function XHRLoader(cfg) {
     function abort() {
         delayedXhrs.forEach(x => clearTimeout(x.delayTimeout));
         delayedXhrs = [];
-
+        //@author Armand Zangue
+        console.log('XHRLoader aborting');
+        console.log(xhrs);
         xhrs.forEach(x => {
             // abort will trigger onloadend which we don't want
             // when deliberately aborting inflight requests -
@@ -272,9 +289,43 @@ function XHRLoader(cfg) {
         xhrs = [];
     }
 
+    /**
+     * Abort single request
+     * @param {Object} request
+     * @author Armand Zangue
+     * @instance
+     */
+    function abortRequest(request) {
+        let i;
+        let aborted = false;
+
+        for (i = 0; i < xhrs.length; i++) {
+            if (xhrs[i].requestIndex === request.index) {
+                console.log('[XHRLoader] [' + Date.now() + '] [' + request.mediaType + '] cancel request with index: ' + request.index);
+                xhrs[i].onloadend = xhrs[i].onerror = xhrs[i].onprogress = undefined;
+                xhrs[i].abort();
+                xhrs.splice(i, 1);
+                aborted = true;
+            }
+        }
+
+        for (i = 0; i < delayedXhrs.length; i++) {
+            if (delayedXhrs[i].requestIndex === request.index) {
+                console.log('[XHRLoader] [' + Date.now() + '] [' + request.mediaType + '] cancel delayed request with index: ' + request.index);
+                clearTimeout(delayedXhrs[i].delayTimeout);
+                delayedXhrs.splice(i, 1);
+                aborted = true;
+            }
+        }
+
+        return aborted;
+    }
+
     instance = {
         load: load,
-        abort: abort
+        abort: abort,
+        // @author Armand Zangue
+        abortRequest: abortRequest
     };
 
     setup();
