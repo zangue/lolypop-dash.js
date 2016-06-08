@@ -137,8 +137,11 @@ function PlaybackController() {
     }
 
     function seek(time) {
+        console.trace();
         if (!videoModel) return;
+        console.log('[PlaybackController] [' + Date.now() + '] seek() called');
         log('Requesting seek to time: ' + time);
+        console.log('Requesting seek to time: ' + time); //@author Armand Zangue
         videoModel.setCurrentTime(time);
     }
 
@@ -268,6 +271,7 @@ function PlaybackController() {
                 }
             }
             presentationStartTime = presentationStartTime || liveStartTime;
+            console.log('[PlaybackController] presentationStartTime: ' + presentationStartTime);
 
         } else {
             if (!isNaN(startTimeOffset) && startTimeOffset < Math.max(streamInfo.manifestInfo.duration, streamInfo.duration) && startTimeOffset >= 0) {
@@ -321,6 +325,7 @@ function PlaybackController() {
         if (initialSeekTime > 0) {
             seek(initialSeekTime);
             log('Starting playback at offset: ' + initialSeekTime);
+            console.log('[PlaybackController] Starting playback at offset: ' + initialSeekTime);
         }
     }
 
@@ -493,6 +498,8 @@ function PlaybackController() {
         setLiveStartTime: setLiveStartTime,
         getLiveStartTime: getLiveStartTime,
         computeLiveDelay: computeLiveDelay,
+        // @author Armand Zangue
+        updateCurrentTime: updateCurrentTime,
         play: play,
         isPaused: isPaused,
         pause: pause,
