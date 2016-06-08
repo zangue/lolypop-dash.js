@@ -83,7 +83,8 @@ function MediaPlayerModel() {
         retryAttempts,
         retryIntervals,
         wallclockTimeUpdateInterval,
-        bufferOccupancyABREnabled;
+        bufferOccupancyABREnabled,
+        lolypopABREnabled; //@author Armand Zangue
 
     function setup() {
         UTCTimingSources = [];
@@ -91,6 +92,7 @@ function MediaPlayerModel() {
         useManifestDateHeaderTimeSource = true;
         scheduleWhilePaused = true;
         bufferOccupancyABREnabled = false;
+        lolypopABREnabled = false; //@author Armand Zangue
         lastBitrateCachingInfo = {enabled: true , ttl: DEFAULT_LOCAL_STORAGE_BITRATE_EXPIRATION};
         lastMediaSettingsCachingInfo = {enabled: true , ttl: DEFAULT_LOCAL_STORAGE_MEDIA_SETTINGS_EXPIRATION};
         liveDelayFragmentCount = LIVE_DELAY_FRAGMENT_COUNT;
@@ -134,6 +136,17 @@ function MediaPlayerModel() {
 
     function getBufferOccupancyABREnabled() {
         return bufferOccupancyABREnabled;
+    }
+
+    //@author Armand Zangue
+    function setLolypopABREnabled(value) {
+        if (value)
+            console.log('%c[MEDIAPLAYERMODEL] [INFO] Use LOLYPOP ', 'background: red; color: green');
+        lolypopABREnabled = value;
+    }
+
+    function getLolypopABREnabled() {
+        return lolypopABREnabled;
     }
 
     function setBandwidthSafetyFactor(value) {
@@ -371,6 +384,8 @@ function MediaPlayerModel() {
         getUseManifestDateHeaderTimeSource: getUseManifestDateHeaderTimeSource,
         setUTCTimingSources: setUTCTimingSources,
         getUTCTimingSources: getUTCTimingSources,
+        setLolypopABREnabled: setLolypopABREnabled, // @author
+        getLolypopABREnabled: getLolypopABREnabled, // Armand Zangue
         reset: reset
     };
 
