@@ -63,6 +63,7 @@ function NextFragmentRequestRule(config) {
         }
 
         if (hasSeekTarget) {
+            console.log('[NextFragmentRequestRule] [' + mediaType + '] has seek target set to: ' + seekTarget);
             scheduleController.setSeekTarget(NaN);
         }
 
@@ -77,6 +78,7 @@ function NextFragmentRequestRule(config) {
                     let t = time;
                     time = appendedChunks[appendedChunks.length - 1].bufferedRange.end;
                     log('Prior to making a request for time, NextFragmentRequestRule is aligning index handler\'s currentTime with bufferedRange.end.',  t, ' was changed to ', time);
+                    //console.log('Prior to making a request for time, NextFragmentRequestRule is aligning index handler\'s currentTime with bufferedRange.end.' +  t + ' was changed to ' + time);
                 }
             }
         }
@@ -84,6 +86,7 @@ function NextFragmentRequestRule(config) {
 
         request = adapter.getFragmentRequestForTime(streamProcessor, representationInfo, time, {keepIdx: keepIdx});
         //log("getForTime", request, time);
+        console.log('[NextFragmentRequestRule] [' + mediaType + '] [' + Date.now() + '] Get request for time : ' + time);
         if (request && streamProcessor.getFragmentModel().isFragmentLoaded(request)) {
             request = adapter.getNextFragmentRequest(streamProcessor, representationInfo);
             //log("getForNext", request, streamProcessor.getIndexHandler().getCurrentIndex());
@@ -94,6 +97,11 @@ function NextFragmentRequestRule(config) {
             request.delayLoadingTime = new Date().getTime() + scheduleController.getTimeToLoadDelay();
             scheduleController.setTimeToLoadDelay(0); // only delay one fragment
         }
+
+        if (request)
+            console.log('[NextFragmentRequestRule] [' + request.mediaType + '] [' + Date.now() + '] Next Request: Index = ' + request.index + ' duration = ' + request.duration + ' start time = ' + request.startTime + ' url = ' + request.url);
+        else
+            console.log('[NextFragmentRequestRule] [' + Date.now() + '] Next Request: Null');
 
         return request;
     }
