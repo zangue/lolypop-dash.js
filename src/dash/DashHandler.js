@@ -348,6 +348,7 @@ function DashHandler(config) {
         if (requestedTime !== time) { // When playing at live edge with 0 delay we may loop back with same time and index until it is available. Reduces verboseness of logs.
             requestedTime = time;
             log('Getting the request for ' + type + ' time : ' + time);
+            //console.log('[DashHandler] [' + Date.now() + '] Getting request for ' + type + 'time : ' + time);
         }
 
         index = getIndexForSegments(time, representation, timeThreshold);
@@ -355,10 +356,12 @@ function DashHandler(config) {
         updateSegments(representation);
         if (index < 0) {
             index = getIndexForSegments(time, representation, timeThreshold);
+            //console.log('[DashHandler] [' + Date.now() + '] Index was < 0 getIndexForSegments returned index: ' + index);
         }
 
         if (index > 0) {
             log('Index for ' + type + ' time ' + time + ' is ' + index );
+            //console.log('[DashHandler] [' + Date.now() + '] Index was > 0. Index for ' + type + ' time ' + time + ' is ' + index);
         }
 
         finished = !ignoreIsFinished ? isMediaFinished(representation) : false;
@@ -403,6 +406,7 @@ function DashHandler(config) {
         index++;
 
         log('Getting the next request at index: ' + index);
+        console.log('[DashHandler] [' + type + '] [' + Date.now() + '] Getting the next request at index: ' + index);
 
         finished = isMediaFinished(representation);
         if (finished) {
