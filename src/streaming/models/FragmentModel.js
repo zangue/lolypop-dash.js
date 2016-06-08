@@ -178,6 +178,17 @@ function FragmentModel(config) {
         return reqs;
     }
 
+    /**
+     * Abort single request
+     * @param  {Object} requets
+     * @author Armand Zangue
+     */
+    function abortRequest(request) {
+        //loadingRequests.splice(loadingRequests.indexOf(request), 1);
+        removeRequest(loadingRequests, request);
+        return fragmentLoader.abortRequest(request);
+    }
+
     function executeRequest(request) {
         if (!request) return;
 
@@ -322,6 +333,8 @@ function FragmentModel(config) {
         isFragmentLoaded: isFragmentLoaded,
         removeExecutedRequestsBeforeTime: removeExecutedRequestsBeforeTime,
         abortRequests: abortRequests,
+        // @author Armand Zangue
+        abortRequest: abortRequest,
         executeRequest: executeRequest,
         reset: reset
     };
