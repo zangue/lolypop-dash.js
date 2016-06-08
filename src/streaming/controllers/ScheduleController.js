@@ -141,7 +141,7 @@ function ScheduleController(config) {
         eventBus.on(Events.BYTES_APPENDED, onBytesAppended, this);
         eventBus.on(Events.INIT_REQUESTED, onInitRequested, this);
         eventBus.on(Events.QUOTA_EXCEEDED, onQuotaExceeded, this);
-        eventBus.on(Events.BUFFER_LEVEL_STATE_CHANGED, onBufferLevelStateChanged, this);
+        //eventBus.on(Events.BUFFER_LEVEL_STATE_CHANGED, onBufferLevelStateChanged, this); // Duplicated TODO
         eventBus.on(Events.PLAYBACK_STARTED, onPlaybackStarted, this);
         eventBus.on(Events.PLAYBACK_SEEKING, onPlaybackSeeking, this);
         eventBus.on(Events.PLAYBACK_RATE_CHANGED, onPlaybackRateChanged, this);
@@ -186,6 +186,7 @@ function ScheduleController(config) {
 
 
     function stop() {
+        console.trace();
         if (isStopped) return;
         isStopped = true;
         clearInterval(validateTimeout);
@@ -200,6 +201,64 @@ function ScheduleController(config) {
         }
 
         return request;
+    }
+
+    /**
+     * Skip the next segment
+     * @author Armand Zangue
+     */
+    function skipNextSegment(request) {
+        //let skippedRequest;
+        let targetTime = request.startTime + request.duration;
+        //let currentTime = playbackController.getTime();
+        let interval = (request.duration * 1.5) * 1000; //ms
+        interval += 1000;
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] interval: ' + interval);
+
+        if (playbackController.getTime() === 0 || type !== 'video')
+            return;
+
+        stop();
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] Time offset (pause) ' +  Math.floor(((request.startTime - playbackController.getTime()) * 1000)));
+        // setTimeout(function() {
+        //      //playbackController.pause();
+
+        //      setTimeout(function() {
+        //          //console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] seeking to : ' + targetTime + ' current time : ' + playbackController.getTime());
+        //          console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] updateCurrentTime. current time : ' + playbackController.getTime() + ' targetTime: ' + targetTime);
+        //          playbackController.updateCurrentTime();
+        //          playbackController.seek(targetTime);
+        //          //playbackController.pause();
+        //          //playbackController.play();
+        //      }, interval);
+        // }, Math.floor(((request.startTime - playbackController.getTime()) * 1000)) - 500);
+
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] Skip next segment with index: ' + request.index);
+
+        //seekTarget = targetTime + (request.duration * 2); // For nextFragmentRequestRule
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] Set seek target: ' + targetTime + (request.duration * 2));
+        setSeekTarget(targetTime + (request.duration * 2));
+        isFragmentLoading = false; // For validate
+
+        start();
+
+        // get a request for a start time
+        let req = adapter.getFragmentRequestForTime(streamProcessor, currentRepresentationInfo, targetTime, {ignoreIsFinished: true});
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] actualStartTime = actualTargetTime = ' + req.startTime);
+        //targetTime = req.startTime;
+
+        //actualStartTime = request.startTime;
+        //actualTargetTime = request.startTime;
+
+        setTimeout(function () {
+            //console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] seeking to : ' + targetTime + ' current time : ' + playbackController.getTime());
+            console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] updateCurrentTime. current time : ' + playbackController.getTime() + ' targetTime: ' + targetTime);
+            playbackController.updateCurrentTime();
+            playbackController.seek(targetTime);
+            //playbackController.pause();
+            playbackController.play();
+        }, interval);
+
     }
 
     function replaceCanceledRequests(canceledRequests) {
@@ -220,9 +279,15 @@ function ScheduleController(config) {
     }
 
     function validate() {
+        //console.trace();
         if (isStopped || playbackController.isPaused() && !scheduleWhilePaused) return;
         //log("validating", type);
+        console.log('validating [' + Date.now() + '] ' + type);
         let readyToLoad = bufferLevelRule.execute(streamProcessor);
+        console.log('readyToLoad: ' + readyToLoad);
+        console.log('isFragmentLoading: ' + isFragmentLoading);
+        console.log('(dashManifestModel.getIsTextTrack(type) || !bufferController.getIsAppendingInProgress()): ' +
+            (dashManifestModel.getIsTextTrack(type) || !bufferController.getIsAppendingInProgress()));
         if (readyToLoad && !isFragmentLoading &&
             (dashManifestModel.getIsTextTrack(type) || !bufferController.getIsAppendingInProgress())) {
             isFragmentLoading = true;
@@ -230,6 +295,10 @@ function ScheduleController(config) {
             const getNextFragment = function () {
                 let request = nextFragmentRequestRule.execute(streamProcessor);
                 if (request) {
+                    let currentTime = playbackController.getTime();
+                    let reqStartTime = request.startTime;
+                    console.log(request);
+                    console.log('ScheduleController [' + request.mediaType + '] [' + Date.now() + '] - About to load request with Index: ' + request.index + ' current time: ' + currentTime + ' request start time: ' + reqStartTime);
                     fragmentModel.executeRequest(request); // we load
                 } else {
                     isFragmentLoading = false;
@@ -237,6 +306,8 @@ function ScheduleController(config) {
                 }
             };
             //Run ABR rules - let it callback to getNextFragment once it is done running.
+            console.log('\n\n');
+            console.log('ScheduleController [' + Date.now() + '] - Run ABR rules.');
             abrController.getPlaybackQuality(streamProcessor,  getNextFragment);
 
         } else {
@@ -285,16 +356,21 @@ function ScheduleController(config) {
 
     function onFragmentLoadingCompleted(e) {
         if (e.sender !== fragmentModel) return;
-
         if (!isNaN(e.request.index)) {
             isFragmentLoading = false;
         }
+
+        // @author Armand Zangue
+        if (mediaPlayerModel.getLolypopABREnabled()) return;
+
         if (!e.error) return;
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] Fragment loaded. index: ' + e.request.index);
         stop();
     }
 
     function onBytesAppended(e) {
         if (e.sender.getStreamProcessor() !== streamProcessor) return;
+        console.log('[ScheduleController] [' + Date.now() + '] [' + type + '] Bytes appended. start time: ' + e.startTime + ' index: ' + e.index);
         validate();
     }
 
@@ -323,6 +399,8 @@ function ScheduleController(config) {
     function onBufferLevelStateChanged(e) {
         if ((e.sender.getStreamProcessor() === streamProcessor) && e.state === BufferController.BUFFER_EMPTY && !playbackController.isSeeking()) {
             log('Stalling Buffer');
+            // @author Armand Zangue
+            console.log('Stalling Buffer');
             clearPlayListTraceMetrics(new Date(), PlayList.Trace.REBUFFERING_REASON);
         }
     }
@@ -389,9 +467,31 @@ function ScheduleController(config) {
         let request,
             actualStartTime;
 
+        console.log('[ScheduleController] DASH.JS liveEdgeTime: ' + liveEdgeTime);
+        console.log('[ScheduleController] DASH.JS startTime: ' + startTime);
+
+        /*
+         * @author Armand Zangue
+         * If LOLYPOP is enable use the LOLYPOP's tune in procedure.
+         */
+        if (mediaPlayerModel.getLolypopABREnabled()) {
+            console.log('ScheduleController: LOLYPOP tune in');
+            let now = new Date().getTime() / 1000;
+            let liveStartTime = manifestInfo.availableFrom.getTime() / 1000;
+            let fragmentDuration = currentRepresentationInfo.fragmentDuration;
+            let desirableDelay = mediaPlayerModel.getLiveDelay() || fragmentDuration * 2.5;
+
+            // TODO - check startTime >= now + tau | ask konstantin about the 1.5 multiplier
+            startTime = ((now - liveStartTime) + fragmentDuration * 1.5) - desirableDelay;
+            console.log('[ScheduleController] Live available from: ' + liveStartTime);
+            console.log('[ScheduleController] LOLYPOP startTime: ' + startTime);
+        }
+
         // get a request for a start time
         request = adapter.getFragmentRequestForTime(streamProcessor, currentRepresentationInfo, startTime, {ignoreIsFinished: true});
         actualStartTime = request.startTime;
+        console.log('[ScheduleController] [Info] liveEdgeTime : ' + liveEdgeTime + ' startTime: ' + startTime + ' actualStartTime:' + actualStartTime);
+        console.log(request);
         seekTarget = actualStartTime; //Setting seekTarget will allow NextFragmentRequestRule's first request time to be accurate.
         if (isNaN(currentLiveStart) || (actualStartTime > currentLiveStart)) {
             playbackController.setLiveStartTime(actualStartTime);
@@ -479,7 +579,9 @@ function ScheduleController(config) {
         stop: stop,
         reset: reset,
         setPlayList: setPlayList,
-        finalisePlayList: finalisePlayList
+        finalisePlayList: finalisePlayList,
+        // @author Armand Zangue
+        skipNextSegment: skipNextSegment
     };
 
     setup();
