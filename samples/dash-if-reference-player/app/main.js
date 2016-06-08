@@ -134,6 +134,12 @@ app.controller('DashController', function($scope, Sources, Notes, Contributors, 
     $scope.audioRatioCount = 0;
     $scope.audioRatio = "";
 
+    // @author Armand Zangue start
+    $scope.fss = NaN;
+    $scope.fqt = NaN;
+    $scope.liveDelay = NaN;
+    // @author Armand Zangue stop
+
     var converter = new MetricsTreeConverter();
     $scope.videoMetrics = null;
     $scope.audioMetrics = null;
@@ -168,6 +174,21 @@ app.controller('DashController', function($scope, Sources, Notes, Contributors, 
       else
         this.$apply(fn);
     };
+
+    // @author Armand Zangue
+    function wsLogLiveDelay() {
+        var socket = io.connect('http://localhost:9000');
+        var log = function () {
+            var now = new Date();
+            var delay = Math.round((now.getTime()/1000) - Number(player.timeAsUTC()));
+            var bufferLevel = player.getBufferLength();
+            var data = {id: 4, delay: delay, bufferLevel: bufferLevel};
+            socket.emit('log', {data: data});
+        }
+
+        setInterval(log, 1000);
+    }
+    // @author Armand Zangue end
 
     function getCribbedMetricsFor(type) {
         var metrics = player.getMetricsFor(type),
@@ -605,6 +626,72 @@ app.controller('DashController', function($scope, Sources, Notes, Contributors, 
         player.enableBufferOccupancyABR(enabled);
     }
 
+    // @author Armand Zangue start
+
+    function toggleLOLYPOPConfig () { // not very accurate name
+        if ($scope.LOLYPOPEnabled) {
+            $scope.fss = player.getSkippedSegmentFraction();
+            $scope.fqt = player.getQualityTransitionFraction();
+            $scope.liveDelay = 5;
+            player.setLiveDelay($scope.liveDelay);
+        } else {
+            $scope.fss = NaN;
+            $scope.fqt = NaN;
+            $scope.liveDelay = NaN;
+            player.setLiveDelay(NaN);
+        }
+    }
+
+    $scope.LOLYPOPEnabled = false;
+
+    $scope.setLOLYPOPEnabled = function (enabled) {
+        $scope.LOLYPOPEnabled = enabled;
+        player.enableLolypopABR(enabled);
+        toggleLOLYPOPConfig();
+    }
+
+    $scope.liveDelayUp = function () {
+        $scope.liveDelay += 1;
+        player.setLiveDelay($scope.liveDelay);
+    }
+
+    $scope.liveDelayDown = function () {
+        if ($scope.liveDelay === 0) return;
+
+        $scope.liveDelay -= 1;
+        player.setLiveDelay($scope.liveDelay);
+    }
+
+    $scope.fssUp = function () {
+        if ($scope.fss === 1)
+            return
+        player.setSkippedSegmentFraction(($scope.fss + 0.01).toFixed(2)/1);
+        $scope.fss = player.getSkippedSegmentFraction();
+    }
+
+    $scope.fssDown = function () {
+        if ($scope.fss === 0.1)
+            return
+        player.setSkippedSegmentFraction(($scope.fss - 0.01).toFixed(2)/1);
+        $scope.fss = player.getSkippedSegmentFraction();
+    }
+
+    $scope.fqtUp = function () {
+        if ($scope.fqt === 100)
+            return;
+        player.setQualityTransitionFraction($scope.fqt + 1);
+        $scope.fqt = player.getQualityTransitionFraction();
+    }
+
+    $scope.fqtDown = function () {
+        if ($scope.fqt === 1)
+            return;
+        player.setQualityTransitionFraction($scope.fqt - 1);
+        $scope.fqt = player.getQualityTransitionFraction();
+    }
+
+    // @author Armand Zangue stop
+
     $scope.abrUp = function (type) {
         var newQuality,
             dashMetrics = player.getDashMetrics(),
@@ -676,6 +763,8 @@ app.controller('DashController', function($scope, Sources, Notes, Contributors, 
         player.attachSource($scope.selectedItem.url);
         player.setAutoSwitchQuality($scope.abrEnabled);
         player.enableBufferOccupancyABR($scope.bolaEnabled);
+        console.log('LOLYPOPEnabled: ' + $scope.LOLYPOPEnabled);
+        player.enableLolypopABR($scope.LOLYPOPEnabled); //  @author Armand Zangue
         controlbar.reset();
         controlbar.enable();
 
@@ -687,6 +776,9 @@ app.controller('DashController', function($scope, Sources, Notes, Contributors, 
         }
 
         $scope.manifestUpdateInfo = null;
+
+        // @author Armand Zangue
+        wsLogLiveDelay();
     }
 
     $scope.switchTrack = function(track, type) {
