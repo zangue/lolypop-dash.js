@@ -41,6 +41,8 @@ import FactoryMaker from '../../core/FactoryMaker.js';
 import ManifestModel from '../models/ManifestModel.js';
 import DashManifestModel from '../../dash/models/DashManifestModel.js';
 import VideoModel from '../models/VideoModel.js';
+// @author Armand Zangue
+import WebSocketLogger from '../utils/WebSocketLogger.js';
 
 const ABANDON_LOAD = 'abandonload';
 const ALLOW_LOAD = 'allowload';
@@ -51,6 +53,8 @@ function AbrController() {
 
     let context = this.context;
     let eventBus = EventBus(context).getInstance();
+    // @author Armand Zangue
+    let wslog = WebSocketLogger(context).getInstance().log;
 
     let instance,
         abrRulesCollection,
@@ -71,7 +75,10 @@ function AbrController() {
         dashManifestModel,
         videoModel,
         mediaPlayerModel,
-        domStorage;
+        domStorage,
+        // TODO refactor variable names
+        skippedSegmentFraction,    // @author
+        qualityTransitionFraction; // Armand Zangue;
 
     function setup() {
         autoSwitchBitrate = {video: true, audio: true};
@@ -89,6 +96,8 @@ function AbrController() {
         manifestModel = ManifestModel(context).getInstance();
         dashManifestModel = DashManifestModel(context).getInstance();
         videoModel = VideoModel(context).getInstance();
+        skippedSegmentFraction = 0.65;    // @author
+        qualityTransitionFraction = 50; // Armand Zangue;
     }
 
     function initialize(type, streamProcessor) {
@@ -115,6 +124,32 @@ function AbrController() {
             domStorage = config.domStorage;
         }
     }
+
+    // @author Armand Zangue - start
+    function getSkippedSegmentFraction() {
+        return skippedSegmentFraction;
+    }
+
+    function setSkippedSegmentFraction(value) {
+        if (value < 0 || value > 1) {
+            return;
+        }
+
+        skippedSegmentFraction = value;
+    }
+
+    function getQualityTransitionFraction() {
+        return qualityTransitionFraction;
+    }
+
+    function setQualityTransitionFraction(value) {
+        if (value < 1 || value > 100) {
+            return;
+        }
+
+        qualityTransitionFraction = value;
+    }
+    // @author Armand Zangue - stop
 
     function getTopQualityIndexFor(type, id) {
         var idx;
@@ -231,6 +266,8 @@ function AbrController() {
             rules,
             confidence;
         var callback = function (res) {
+            console.log('ABR callback!');
+            console.log(res);
             var topQualityIdx = getTopQualityIndexFor(type, streamId);
 
             quality = res.value;
@@ -249,7 +286,35 @@ function AbrController() {
             if (quality !== oldQuality && (abandonmentStateDict[type].state === ALLOW_LOAD ||  quality > oldQuality)) {
                 setInternalQuality(type, streamId, quality);
                 setConfidenceFor(type, streamId, confidence);
+
+                // @author Armand Zangue start
+                let bitrates = getBitrateList(streamProcessor.getMediaInfo());
+                let bitrate, i;
+                for (i = 0; i < bitrates.length; i++) {
+                    if (bitrates[i].qualityIndex === quality) {
+                        bitrate = bitrates[i].bitrate;
+                        break;
+                    }
+                }
+                console.log('%c[ABRCONTROLLER] [INFO] quality changed  from  ' + bitrates[oldQuality].bitrate / 1000 + ' kbps to' + bitrates[quality].bitrate / 1000 + ' kbps', 'background: red; color: green');
+                wslog({id: 3, quality: bitrate, type: type});
+                wslog({id: 6, quality: bitrate, type: type});
+                // @author Armand Zangue end
+
                 eventBus.trigger(Events.QUALITY_CHANGED, {mediaType: type, streamInfo: streamProcessor.getStreamInfo(), oldQuality: oldQuality, newQuality: quality});
+            } else {
+                // @author Armand Zangue start
+                let bitrates = getBitrateList(streamProcessor.getMediaInfo());
+                let bitrate, i;
+                for (i = 0; i < bitrates.length; i++) {
+                    if (bitrates[i].qualityIndex === oldQuality) {
+                        bitrate = bitrates[i].bitrate;
+                        break;
+                    }
+                }
+                //console.log('%c[ABRCONTROLLER] [INFO] quality changed  from  ' + bitrates[oldQuality].bitrate / 1000 + ' kbps to' + bitrates[quality].bitrate / 1000 + ' kbps', 'background: red; color: green');
+                wslog({id: 3, quality: bitrate, type: type});
+                // @author Armand Zangue end
             }
             if (completedCallback) {
                 completedCallback();
@@ -397,6 +462,8 @@ function AbrController() {
     }
 
     function setInternalQuality(type, id, value) {
+        console.log(value);
+        console.log('%c[ABRCONTROLLER] [INFO] set internal quality to : ' + value / 1000 + ' kbps', 'background: red; color: green');
         qualityDict[id] = qualityDict[id] || {};
         qualityDict[id][type] = value;
     }
@@ -541,6 +608,12 @@ function AbrController() {
         getPlaybackQuality: getPlaybackQuality,
         setAverageThroughput: setAverageThroughput,
         getTopQualityIndexFor: getTopQualityIndexFor,
+        // @author Armand Zangue start
+        getSkippedSegmentFraction: getSkippedSegmentFraction,
+        setSkippedSegmentFraction: setSkippedSegmentFraction,
+        getQualityTransitionFraction: getQualityTransitionFraction,
+        setQualityTransitionFraction: setQualityTransitionFraction,
+        // @author Armand Zangue end
         initialize: initialize,
         setConfig: setConfig,
         reset: reset
