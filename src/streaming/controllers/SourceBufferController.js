@@ -290,6 +290,8 @@ function SourceBufferController() {
                 // updating is in progress, we should wait for it to complete before signaling that this operation is done
                 waitForUpdateEnd(buffer, function () {
                     eventBus.trigger(Events.SOURCEBUFFER_APPEND_COMPLETED, {buffer: buffer, bytes: bytes});
+                    let now = new Date().getTime();
+                    console.log('[' + chunk.mediaInfo.type + '] [#' + chunk.index + '] Loaded to appended time: ' + (now - chunk.loadedTime) + ' ms');
                 });
             });
         } catch (err) {
