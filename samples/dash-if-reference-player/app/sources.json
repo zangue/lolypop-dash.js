@@ -68,6 +68,18 @@
         {
           "url": "http://24x7dash-i.akamaihd.net/dash/live/900080/dash-demo/dash.mpd",
           "name": "Akamai 24x7 reference stream - segmentTemplate"
+        },
+        {
+            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/Manifest.mpd",
+            "name":"TKN Sintel 4K"
+        },
+        {
+            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/Manifest2k.mpd",
+            "name":"TKN Sintel 2K"
+        },
+        {
+            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/ManifestHD.mpd",
+            "name":"TKN Sintel HD"
         }
       ]
     },
