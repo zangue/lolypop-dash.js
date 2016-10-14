@@ -36,12 +36,16 @@ import EventBus from '../../core/EventBus';
 import Events from '../../core/events/Events';
 import FactoryMaker from '../../core/FactoryMaker';
 import Debug from '../../core/Debug';
+// @author Zangue
+import LogClient from '../utils/LogClient';
 
 function FragmentController(/*config*/) {
 
     const context = this.context;
     const log = Debug(context).getInstance().log;
     const eventBus = EventBus(context).getInstance();
+    // @author Zangue
+    const logClient = LogClient(context).create();
 
     let instance,
         fragmentModels;
@@ -114,7 +118,22 @@ function FragmentController(/*config*/) {
         }
 
         const chunk = createDataChunk(bytes, request, streamId);
+
         eventBus.trigger(isInit ? Events.INIT_FRAGMENT_LOADED : Events.MEDIA_FRAGMENT_LOADED, {chunk: chunk, fragmentModel: e.sender});
+    
+        // Report @author Zangue
+        if (e.skipped) return; // Dont log skipped segment here
+        logClient.report({
+            'metric_id': LogClient.DOWNLOAD_METRIC,
+            'timestamp': new Date().getTime(),
+            'type': request.mediaType,
+            'bitrate': scheduleController.getStreamProcessor().getABRController().getBitrateForQuality(scheduleController.getStreamProcessor(), request.quality),
+            'send_time': request.requestStartDate.getTime(),
+            'first_bytes_time': request.firstByteDate.getTime(),
+            'loaded_time': request.requestEndDate.getTime(),
+            'bytes_loaded:': request.bytesLoaded,
+            'bytes_total': request.bytesTotal
+        });
     }
 
     instance = {

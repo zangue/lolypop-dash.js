@@ -41,6 +41,9 @@ import BoxParser from '../utils/BoxParser';
 import FactoryMaker from '../../core/FactoryMaker';
 import Debug from '../../core/Debug';
 import InitCache from '../utils/InitCache';
+// @author Zangue
+import LogClient from '../utils/LogClient';
+import LiveDelay from '../utils/LiveDelay';
 
 const BUFFER_LOADED = 'bufferLoaded';
 const BUFFER_EMPTY = 'bufferStalled';
@@ -59,6 +62,9 @@ function BufferController(config) {
     const mediaController = config.mediaController;
     const adapter = config.adapter;
     const textSourceBuffer = config.textSourceBuffer;
+    // @author Zangue
+    const logClient = LogClient(context).create();
+    const liveDelay = LiveDelay(context).getInstance();
 
 
     let instance,
@@ -74,6 +80,7 @@ function BufferController(config) {
         bufferState,
         appendedBytesInfo,
         wallclockTicked,
+        timeToLog,
         appendingMediaChunk,
         isAppendingInProgress,
         isPruningInProgress,
@@ -95,6 +102,7 @@ function BufferController(config) {
         buffer = null;
         bufferState = BUFFER_EMPTY;
         wallclockTicked = 0;
+        timeToLog = 0;
         appendingMediaChunk = false;
         isAppendingInProgress = false;
         isPruningInProgress = false;
@@ -436,12 +444,24 @@ function BufferController(config) {
         }
     }
 
-    function onWallclockTimeUpdated() {
+    function onWallclockTimeUpdated(e) {
         wallclockTicked++;
+        timeToLog++;
         const secondsElapsed = (wallclockTicked * (mediaPlayerModel.getWallclockTimeUpdateInterval() / 1000));
         if ((secondsElapsed >= mediaPlayerModel.getBufferPruningInterval()) && !isAppendingInProgress) {
             wallclockTicked = 0;
             pruneBuffer();
+        }
+
+        // Report Delay each 5 seconds
+        // @author Zangue
+        if (playbackController.isPlaybackStarted() && (timeToLog >= 5)) {
+            timeToLog = 0;
+            logClient.report({
+                'metric_id': LogClient.DELAY_METRIC,
+                'timestamp': new Date().getTime(),
+                'delay': liveDelay.getDelay(),
+            });
         }
     }
 
