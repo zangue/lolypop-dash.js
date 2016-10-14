@@ -169,7 +169,11 @@ function XHRLoader(cfg) {
             lastTraceReceivedCount = event.loaded;
 
             if (config.progress) {
-                config.progress();
+               /**
+                * @author Armand Zangue
+                * Added trace to be passed to event suscribers
+                */
+               config.progress(xhr, traces[traces.length - 1]);
             }
         };
 
