@@ -57,6 +57,8 @@ import EventBus from './../core/EventBus';
 import Events from './../core/events/Events';
 import MediaPlayerEvents from './MediaPlayerEvents';
 import FactoryMaker from '../core/FactoryMaker';
+// Throughtput Predictor - @author Armand Zangue
+import ThroughputPredictor from './throughput/ThroughputPredictor';
 import {getVersionString} from './../core/Version';
 
 //Dash
@@ -91,6 +93,7 @@ function MediaPlayer() {
         playbackInitialized,
         autoPlay,
         abrController,
+        throughputPredictor, // @Author Armand Zangue
         mediaController,
         protectionController,
         metricsReportingController,
@@ -151,6 +154,8 @@ function MediaPlayer() {
         abrController = AbrController(context).getInstance();
 
         playbackController = PlaybackController(context).getInstance();
+        // @author Armand Zangue: Get throughput Predictor
+        throughputPredictor = ThroughputPredictor(context).getInstance();
         mediaController = MediaController(context).getInstance();
         mediaController.initialize();
         dashManifestModel = DashManifestModel(context).getInstance();
@@ -1253,6 +1258,59 @@ function MediaPlayer() {
         mediaPlayerModel.setBufferOccupancyABREnabled(value);
     }
 
+    // @author Armand Zangue - start
+
+    /**
+     * Enabling LOLYPOP ABR will swicth to the implementation of LOLYPOP.
+     *
+     * @see http://arxiv.org/pdf/1603.00859v2.pdf
+     * @param  {boolean} value
+     * @default false
+     * @memberof module:MediaPlayer
+     * @instance
+     */
+    function enableLolypopABR(value) {
+        mediaPlayerModel.setLolypopABREnabled(value);
+    }
+
+    /**
+     * Get the fraction of allowed skipped segments
+     *
+     * @return {number}
+     */
+    function getSkippedSegmentConfig() {
+        return abrController.getSkippedSegmentConfig();
+    }
+
+    /**
+     * Set the fraction of allowed skipped segments
+     *
+     * @param {number} value number between 0 and 1
+     */
+    function setSkippedSegmentConfig(value) {
+        abrController.setSkippedSegmentConfig(value);
+    }
+
+    /**
+     * Get the fraction of allowed qualitiy transitions.
+     *
+     * @return {number}
+     */
+    function getQualityTransitionConfig() {
+        return abrController.getQualityTransitionConfig();
+    }
+
+    /**
+     * Set the fraction of allowed quality transitions
+     *
+     * @param {number} value number between 1 and 100
+     */
+    function setQualityTransitionConfig(value) {
+        abrController.setQualityTransitionConfig(value);
+    }
+
+    // @author Armand Zangue - stop
+
     /**
      * Allows application to retrieve a manifest.  Manifest loading is asynchro
      * nous and
@@ -1762,6 +1820,8 @@ function MediaPlayer() {
             playbackController.reset();
             abrController.reset();
             rulesController.reset();
+            // @author Armand Zangue: reset Throughput Predictor
+            throughputPredictor.reset();
             mediaController.reset();
             streamController = null;
             metricsReportingController = null;
@@ -2036,6 +2096,13 @@ function MediaPlayer() {
         displayCaptionsOnTop: displayCaptionsOnTop,
         attachVideoContainer: attachVideoContainer,
         attachTTMLRenderingDiv: attachTTMLRenderingDiv,
+        // @author Armand Zangue start
+        enableLolypopABR: enableLolypopABR,
+        getSkippedSegmentConfig: getSkippedSegmentConfig,
+        setSkippedSegmentConfig: setSkippedSegmentConfig,
+        getQualityTransitionConfig: getQualityTransitionConfig,
+        setQualityTransitionConfig: setQualityTransitionConfig,
+        // @author Armand Zangue end
         reset: reset
     };
 
