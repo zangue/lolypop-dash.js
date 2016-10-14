@@ -45,6 +45,7 @@ class DataChunk {
         this.start = NaN;
         this.end = NaN;
         this.duration = NaN;
+        // @author Zangue - add some extra infos for logging
         this.loadedTime = NaN;
     }
 }

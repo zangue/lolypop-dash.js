@@ -48,6 +48,9 @@ import Events from '../../core/events/Events';
 import FactoryMaker from '../../core/FactoryMaker';
 import StreamController from '../controllers/StreamController';
 import Debug from '../../core/Debug';
+import DummyFragment from '../utils/DummyFragment';
+// @author Zangue
+import LogClient from '../utils/LogClient';
 
 function ScheduleController(config) {
 
@@ -61,6 +64,8 @@ function ScheduleController(config) {
     const dashManifestModel = config.dashManifestModel;
     const timelineConverter = config.timelineConverter;
     const mediaPlayerModel = config.mediaPlayerModel;
+    // @author Zangue
+    const logClient = LogClient(context).create();
 
     let instance,
         type,
@@ -90,7 +95,8 @@ function ScheduleController(config) {
         scheduleWhilePaused,
         lastQualityIndex,
         lastInitQuality,
-        replaceRequestArray;
+        replaceRequestArray,
+        dummyFragment; // @author Zangue
 
     function setup() {
         initialPlayback = true;
@@ -132,6 +138,11 @@ function ScheduleController(config) {
             sourceBufferController: SourceBufferController(context).getInstance(),
             textSourceBuffer: TextSourceBuffer(context).getInstance()
 
+        });
+
+        // @author Zangue
+        dummyFragment = DummyFragment(context).create({
+            scheduleController: instance
         });
 
         if (dashManifestModel.getIsTextTrack(type)) {
@@ -183,6 +194,38 @@ function ScheduleController(config) {
         isStopped = true;
         clearTimeout(scheduleTimeout);
         log('Schedule controller stopping for ' + type);
+    }
+
+    // @author Zangue
+    function skipSegment(request) {
+        stop();
+        
+        let targetTime = request.startTime + request.duration;
+        let timeToPause = request.startTime - playbackController.getTime();
+        let timeToSeek = timeToPause + currentRepresentationInfo.fragmentDuration;
+
+        setSeekTarget(targetTime + request.duration); // For nextFragmentRequestRule
+
+        //isFragmentLoading = false; // For validate()
+
+        // Fill gap with dummy segment, to avoid playback issues
+        dummyFragment.generateMediaSegment(request, fragmentModel.getLoader());
+
+        start();
+
+        // Report
+        // @author Zangue
+        logClient.report({
+            'metric_id': LogClient.SKIPPED_METRIC,
+            'timestamp': new Date().getTime(),
+            'type': request.mediaType,
+            'bitrate': abrController.getBitrateForQuality(streamProcessor, request.quality),
+            'send_time': request.requestStartDate.getTime(),
+            'first_bytes_time': request.firstByteDate.getTime(),
+            'abort_time': request.requestEndDate.getTime(),
+            'bytes_loaded:': request.bytesLoaded,
+            'bytes_total': request.bytesTotal
+        });
     }
 
     function schedule() {
@@ -406,11 +449,34 @@ function ScheduleController(config) {
     function onLiveEdgeSearchCompleted (e) {
         if (e.error) return;
 
-        const dvrWindowSize = currentRepresentationInfo.mediaInfo.streamInfo.manifestInfo.DVRWindowSize / 2;
-        const startTime = e.liveEdge - playbackController.computeLiveDelay(currentRepresentationInfo.fragmentDuration, dvrWindowSize);
-        const manifestUpdateInfo = dashMetrics.getCurrentManifestUpdate(metricsModel.getMetricsFor('stream'));
-        const currentLiveStart = playbackController.getLiveStartTime();
-        const request = adapter.getFragmentRequestForTime(streamProcessor, currentRepresentationInfo, startTime, {ignoreIsFinished: true});
+        let dvrWindowSize = currentRepresentationInfo.mediaInfo.streamInfo.manifestInfo.DVRWindowSize / 2;
+        let startTime = e.liveEdge - playbackController.computeLiveDelay(currentRepresentationInfo.fragmentDuration, dvrWindowSize);
+        let manifestUpdateInfo = dashMetrics.getCurrentManifestUpdate(metricsModel.getMetricsFor('stream'));
+        let currentLiveStart = playbackController.getLiveStartTime();
+        let request;
+
+
+        /*
+         * @author Armand Zangue
+         * If LOLYPOP is enable use the LOLYPOP's tune in procedure.
+         */
+        if (mediaPlayerModel.getLolypopABREnabled()) {
+            //console.log('ScheduleController: LOLYPOP tune in');
+            let now = new Date().getTime() / 1000;
+            let manifestInfo = currentRepresentationInfo.mediaInfo.streamInfo.manifestInfo;
+            let liveStartTime = manifestInfo.availableFrom.getTime() / 1000;
+            let fragmentDuration = currentRepresentationInfo.fragmentDuration;
+            let desirableDelay = mediaPlayerModel.getLiveDelay() || fragmentDuration * 2.5;
+
+            // TODO - check startTime >= now + tau | ask konstantin about the 1.5 multiplier
+            startTime = ((now - liveStartTime) + fragmentDuration * 1.5) - desirableDelay;
+            //startTime = (e.liveEdge + fragmentDuration * 1.5) - desirableDelay;
+            //console.log('[ScheduleController] Wall Clock Time: ' + now);
+            //console.log('[ScheduleController] Live available from: ' + liveStartTime);
+            //console.log('[ScheduleController] LOLYPOP startTime: ' + startTime);
+        }
+
+        request = adapter.getFragmentRequestForTime(streamProcessor, currentRepresentationInfo, startTime, {ignoreIsFinished: true});
 
         seekTarget = currentLiveStart;
         if (isNaN(currentLiveStart) || request.startTime > currentLiveStart) {
@@ -536,7 +602,8 @@ function ScheduleController(config) {
         reset: reset,
         setPlayList: setPlayList,
         getBufferTarget: getBufferTarget,
-        finalisePlayList: finalisePlayList
+        finalisePlayList: finalisePlayList,
+        skipSegment: skipSegment
     };
 
     setup();
