@@ -137,6 +137,38 @@
                         <input type="checkbox" id="bolaCB" ng-model="bolaSelected" ng-change="toggleBufferOccupancyABR()" ng-checked="false">
                         Buffer Occupancy ABR
                     </label>
+                    <label class="topcoat-checkbox" data-toggle="tooltip" data-placement="right"
+                           title="LOLYPOP is an ABR ruleset. When enabled, it will disable the default heuristics in Dash.js">
+                        <input type="checkbox" id="lolypopCB" ng-model="lolypopSelected" ng-change="toggleLOLYPOPABR()" ng-checked="false">
+                        LOLYPOP ABR
+                    </label>
+                </div>
+            </div>
+
+            <div class="options-item">
+                <div class="options-item-title">LOLYPOP Config Options</div>
+                <div class="options-item-body">
+                    <label data-toggle="tooltip" data-placement="right"
+                    title="Set this value to configure the fraction of skipped segments. Valid values € [0,1]. E.g a value 0.05 means that we allow at most 5% of the segments to be skipped during live session">
+                    Sigma
+                    </label>
+                    <input type="text" class="form-control" placeholder="e.g. 0.04" ng-model="initialSettings.skippedSegmentConfig">
+                    <label data-toggle="tooltip" data-placement="right"
+                    title="Set this value to configure the fraction of quality transitions during live session. Valid values € [0,1].">
+                    % of quality switches
+                    </label>
+                    <input type="text" class="form-control" placeholder="e.g. 0.5"ng-model="initialSettings.qualityTransConfig">
+                </div>
+            </div>
+
+            <div class="options-item">
+                <div class="options-item-title">Live Settings</div>
+                <div class="options-item-body">
+                    <label data-toggle="tooltip" data-placement="right"
+                    title="Set this value to configure the target delay for live session">
+                    Target Delay (in sec)
+                    </label>
+                    <input type="text" class="form-control" placeholder="e.g. 5" ng-model="initialSettings.targetLiveDelay">
                 </div>
             </div>
 

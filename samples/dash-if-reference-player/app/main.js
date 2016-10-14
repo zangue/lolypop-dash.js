@@ -436,6 +436,10 @@ app.controller('DashController', function($scope, sources, contributors) {
         $scope.player.enableBufferOccupancyABR($scope.bolaSelected);
     }
 
+    $scope.toggleLOLYPOPABR = function () {
+        $scope.player.enableLolypopABR($scope.lolypopSelected);
+    }
+
     $scope.toggleFastSwitch = function () {
         $scope.player.setFastSwitchEnabled($scope.fastSwitchSelected);
     }
@@ -472,6 +476,16 @@ app.controller('DashController', function($scope, sources, contributors) {
         }
         if ($scope.initialSettings.video) {
             $scope.player.setInitialMediaSettingsFor("video", {role: $scope.initialSettings.video});
+        }
+        // @author Zangue
+        if ($scope.initialSettings.skippedSegmentConfig) {
+            $scope.player.setSkippedSegmentConfig($scope.initialSettings.skippedSegmentConfig);
+        }
+        if ($scope.initialSettings.qualityTransConfig) {
+            $scope.player.setQualityTransitionConfig($scope.initialSettings.qualityTransConfig);
+        }
+        if ($scope.initialSettings.targetLiveDelay) {
+            $scope.player.setLiveDelay($scope.initialSettings.targetLiveDelay);
         }
         $scope.controlbar.enable();
     }
