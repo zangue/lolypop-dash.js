@@ -38,6 +38,8 @@ import MediaPlayerModel from '../../models/MediaPlayerModel';
 import MetricsModel from '../../models/MetricsModel';
 import DashMetrics from '../../../dash/DashMetrics';
 import FactoryMaker from '../../../core/FactoryMaker';
+import LOLYPOPRule from './LOLYPOPRule'; //@author Armand Zangue
+import LOLYPOPAbortRule from './LOLYPOPAbortRule'; //@author Armand Zangue
 
 const QUALITY_SWITCH_RULES = 'qualitySwitchRules';
 const ABANDON_FRAGMENT_RULES = 'abandonFragmentRules';
@@ -58,7 +60,21 @@ function ABRRulesCollection() {
         let dashMetrics = DashMetrics(context).getInstance();
         let mediaPlayerModel = MediaPlayerModel(context).getInstance();
 
-        if (mediaPlayerModel.getBufferOccupancyABREnabled()) {
+        //@author Armand Zangue
+        if (mediaPlayerModel.getLolypopABREnabled()) {
+            console.log('%c[ABRRULESCOLLECTION] [INFO] Use LOLYPOP Algo', 'background: red; color: green');
+            qualitySwitchRules.push(
+                LOLYPOPRule(context).create({
+                    metricsModel: metricsModel,
+                    dashMetrics: DashMetrics(context).getInstance()
+                })
+            );
+
+            abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
+                metricsModel: metricsModel,
+                dashMetrics: DashMetrics(context).getInstance()
+            }));
+        } else if (mediaPlayerModel.getBufferOccupancyABREnabled()) {
             qualitySwitchRules.push(
                 BolaRule(context).create({
                     metricsModel: metricsModel,
