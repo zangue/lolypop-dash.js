@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8 />
+
+	<title>BA Test</title>
+
+	<style>
+		body {
+			width: 1280px;
+			margin: 0 auto;
+		}
+
+	    video {
+	        width: 1280px;
+	        height: 720px;
+	    }
+	    .clock {
+	    	border:1px solid #333;
+	    	color:#000;
+	    	font-size: 40pt;
+	    }
+	</style>
+	
+	<script src="../../dist/dash.all.debug.js"></script>
+	<!--[if IE]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<script>
+		function getParameterByName(name, url) {
+		    if (!url) url = window.location.href;
+		    name = name.replace(/[\[\]]/g, "\\$&");
+		    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+		        results = regex.exec(url);
+		    if (!results) return null;
+		    if (!results[2]) return '';
+		    return decodeURIComponent(results[2].replace(/\+/g, " "));
+		}
+
+		function load () {
+			var manifest = "http://130.149.49.253/livesim/tfdt_1/sintel_2s/ManifestHD.mpd";
+			var algo = String(getParameterByName('algo')) || 'default';
+			var omega = parseInt(getParameterByName('omega')) / 100;
+			var sigma = parseInt(getParameterByName('sigma')) / 100;
+			var delay = parseInt(getParameterByName('delay')) || 4;
+			var player, video;
+
+			document.querySelector("#header").innerHTML = 'Testing: ' + algo.toUpperCase() + ' Algorithm.'
+
+			video = document.querySelector("#video1");
+            player = dashjs.MediaPlayer().create();
+
+            // Algo config
+            if (algo === 'lolypop')
+            	player.enableLolypopABR(true);
+            if (algo === 'bola')
+            	player.enableBufferOccupancyABR(true);
+
+            // init the player
+            player.initialize(video, manifest ,true);
+
+            // Configure Target Live delay
+            player.setLiveDelay(delay);
+
+            // Configure LOLYPOP params
+            if (algo === 'lolypop') {
+            	player.setSkippedSegmentConfig(sigma);
+            	player.setQualityTransitionConfig(omega);
+            }
+
+            setInterval( function() {
+                var d = new Date();
+                var seconds = d.getSeconds();
+                document.querySelector("#sec").innerHTML = ( seconds < 10 ? "0" : "" ) + seconds;
+                var minutes = d.getMinutes();
+                document.querySelector("#min").innerHTML = ( minutes < 10 ? "0" : "" ) + minutes;
+
+                var p = eval("player");
+                var delay = Math.round((d.getTime()/1000) - Number(p.timeAsUTC()));
+                var blevel = p.getBufferLength()
+                document.querySelector("#video1delay").innerHTML = delay
+                document.querySelector("#video1buffer").innerHTML = blevel+ "s";
+            },1000);
+		}
+	</script>
+</head>
+<body onload="load()">
+	<div>
+		<h2><span id="header"></span></h2>
+	</div>
+	<div>
+	    <video id="video1" controls=true></video>
+	    <br/>
+	    Seconds behind live: <span id="video1delay"></span><br/>
+	    Buffer length: <span id="video1buffer"></span>
+	</div>
+	<div>
+	    <div class="clock">
+	        <span id="min"> </span>:<span id="sec"></span>
+	    </div>
+	</div>
+</body>
+</html>
