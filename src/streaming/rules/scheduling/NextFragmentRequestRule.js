@@ -55,9 +55,9 @@ function NextFragmentRequestRule(config) {
             return null;
         }
 
-        if (hasSeekTarget) {
-            scheduleController.setSeekTarget(NaN);
-        }
+        //if (hasSeekTarget) {
+        //    scheduleController.setSeekTarget(NaN);
+        //}
 
         /**
          * This is critical for IE/Safari/EDGE
@@ -80,6 +80,8 @@ function NextFragmentRequestRule(config) {
                 request = adapter.getNextFragmentRequest(streamProcessor, representationInfo);
             }
             if (request) {
+                // @author Armand
+                if (hasSeekTarget) scheduleController.setSeekTarget(NaN);
                 adapter.setIndexHandlerTime(streamProcessor, request.startTime + request.duration);
                 request.delayLoadingTime = new Date().getTime() + scheduleController.getTimeToLoadDelay();
                 scheduleController.setTimeToLoadDelay(0);
