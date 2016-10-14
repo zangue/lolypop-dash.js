@@ -88,16 +88,23 @@ function FragmentLoader(config) {
                 request: request,
                 response: data || null,
                 error: error || null,
-                sender: instance
+                sender: instance,
+                skipped: false
             });
         };
 
         if (request) {
             xhrLoader.load({
                 request: request,
-                progress: function () {
+                /**
+                 * @author Armand Zangue
+                 * Added trace to be passed to event suscribers
+                 */
+                progress: function (xhr, trace) {
                     eventBus.trigger(Events.LOADING_PROGRESS, {
-                        request: request
+                        request: request,
+                        xhr: xhr,
+                        trace: trace
                     });
                 },
                 success: function (data) {
