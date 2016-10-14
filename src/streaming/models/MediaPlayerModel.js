@@ -87,6 +87,7 @@ function MediaPlayerModel() {
         retryIntervals,
         wallclockTimeUpdateInterval,
         bufferOccupancyABREnabled,
+        lolypopABREnabled, // @author Zangue
         xhrWithCredentials,
         fastSwitchEnabled;
 
@@ -96,6 +97,7 @@ function MediaPlayerModel() {
         useManifestDateHeaderTimeSource = true;
         scheduleWhilePaused = true;
         bufferOccupancyABREnabled = false;
+        lolypopABREnabled = false; // @author Zangue
         fastSwitchEnabled = false;
         lastBitrateCachingInfo = {enabled: true , ttl: DEFAULT_LOCAL_STORAGE_BITRATE_EXPIRATION};
         lastMediaSettingsCachingInfo = {enabled: true , ttl: DEFAULT_LOCAL_STORAGE_MEDIA_SETTINGS_EXPIRATION};
@@ -142,6 +144,14 @@ function MediaPlayerModel() {
 
     function getBufferOccupancyABREnabled() {
         return bufferOccupancyABREnabled;
+    }
+
+    function setLolypopABREnabled(value) {
+        lolypopABREnabled = value;
+    }
+
+    function getLolypopABREnabled() {
+        return lolypopABREnabled;
     }
 
     function setBandwidthSafetyFactor(value) {
@@ -292,6 +302,7 @@ function MediaPlayerModel() {
     }
 
     function setLiveDelay(value) {
+        console.log('%c[MediaPlayerModel] [INFO] Setting target live delay to: ' + value, 'background: red; color: green');
         liveDelay = value;
     }
 
@@ -399,6 +410,10 @@ function MediaPlayerModel() {
         getXHRWithCredentials: getXHRWithCredentials,
         setFastSwitchEnabled: setFastSwitchEnabled,
         getFastSwitchEnabled: getFastSwitchEnabled,
+        // @author Zangue
+        getLolypopABREnabled: getLolypopABREnabled,
+        setLolypopABREnabled: setLolypopABREnabled,
+        // @author end
         reset: reset
     };
 
