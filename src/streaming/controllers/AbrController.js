@@ -73,7 +73,9 @@ function AbrController() {
         dashManifestModel,
         videoModel,
         mediaPlayerModel,
-        domStorage;
+        domStorage,
+        skippedSegmentConfig,    //@author
+        qualityTransitionConfig; // Zangue
 
     function setup() {
         autoSwitchBitrate = {video: true, audio: true};
@@ -92,6 +94,8 @@ function AbrController() {
         manifestModel = ManifestModel(context).getInstance();
         dashManifestModel = DashManifestModel(context).getInstance();
         videoModel = VideoModel(context).getInstance();
+        skippedSegmentConfig = 0.65;
+        qualityTransitionConfig = 0.25;
     }
 
     function initialize(type, streamProcessor) {
@@ -117,6 +121,54 @@ function AbrController() {
         }
     }
 
+    // @author Armand Zangue - start
+    function getSkippedSegmentConfig() {
+        return skippedSegmentConfig;
+    }
+
+    function setSkippedSegmentConfig(value) {
+        if (value < 0) {
+            value = 0;
+        }
+
+        if (value > 1) {
+            value = 1;
+        }
+        console.log('%c[ABR Controller] [INFO] Setting skippedSegmentConfig to: ' + value, 'background: red; color: green');
+        skippedSegmentConfig = value;
+    }
+
+    function getQualityTransitionConfig() {
+        return qualityTransitionConfig;
+    }
+
+    function setQualityTransitionConfig(value) {
+        if (value < 0) {
+            value = 0;
+        }
+
+        if (value > 1) {
+            value = 1;
+        }
+        console.log('%c[ABR Controller] [INFO] Setting qualityTransitionConfig to: ' + value, 'background: red; color: green');
+        qualityTransitionConfig = value;
+    }
+
+    function getBitrateForQuality(streamProcessor, quality) {
+        let bitrates = getBitrateList(streamProcessor.getMediaInfo());
+        let bitrate, i;
+
+        for (i = 0; i < bitrates.length; i++) {
+            if (bitrates[i].qualityIndex === quality) {
+                bitrate = bitrates[i].bitrate;
+                break;
+            }
+        }
+
+        return bitrate;
+    }
+    // @author Armand Zangue - end
+
     function getTopQualityIndexFor(type, id) {
         var idx;
         topQualities[id] = topQualities[id] || {};
@@ -139,6 +191,9 @@ function AbrController() {
     function getInitialBitrateFor(type) {
 
         let savedBitrate = domStorage.getSavedBitrateSettings(type);
+
+        // @author Zangue - for testing prevent saved bitrate to be used
+        savedBitrate = NaN;
 
         if (!bitrateDict.hasOwnProperty(type)) {
             if (ratioDict.hasOwnProperty(type)) {
@@ -545,6 +600,13 @@ function AbrController() {
         getTopQualityIndexFor: getTopQualityIndexFor,
         initialize: initialize,
         setConfig: setConfig,
+        // @author Armand Zangue start
+        getSkippedSegmentConfig: getSkippedSegmentConfig,
+        setSkippedSegmentConfig: setSkippedSegmentConfig,
+        getQualityTransitionConfig: getQualityTransitionConfig,
+        setQualityTransitionConfig: setQualityTransitionConfig,
+        getBitrateForQuality: getBitrateForQuality,
+        // @author Armand Zangue end
         reset: reset
     };
 
