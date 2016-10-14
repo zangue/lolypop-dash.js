@@ -66,6 +66,11 @@ function FragmentModel(config) {
         fragmentLoader = value;
     }
 
+    // @author Zangue
+    function getLoader() {
+        return fragmentLoader;
+    }
+
     function setScheduleController(value) {
         scheduleController = value;
     }
@@ -237,6 +242,7 @@ function FragmentModel(config) {
             request: e.request,
             response: e.response,
             error: e.error,
+            skipped: e.skipped, // @author Zangue
             sender: this
         });
     }
@@ -255,6 +261,7 @@ function FragmentModel(config) {
 
     instance = {
         setLoader: setLoader,
+        getLoader: getLoader, // @author Zangue
         setScheduleController: setScheduleController,
         getScheduleController: getScheduleController,
         getRequests: getRequests,
