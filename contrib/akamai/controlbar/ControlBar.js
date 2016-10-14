@@ -284,7 +284,7 @@ var ControlBar = function (dashjsMediaPlayer) {
                 var availableBitrates = {menuType: 'bitrate'};
                 availableBitrates.audio = player.getBitrateInfoListFor("audio");
                 availableBitrates.video = player.getBitrateInfoListFor("video");
-                if (availableBitrates.audio.length > 1 || availableBitrates.video.length > 1) {
+                if ((availableBitrates.audio !== null) && (availableBitrates.audio.length > 1 || availableBitrates.video.length > 1)) {
                     contentFunc = function (element, index) {
                         return isNaN(index) ? " Auto Switch" : Math.floor(element.bitrate / 1000) + " kbps";
                     }
