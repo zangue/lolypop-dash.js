@@ -414,11 +414,12 @@ function Stream(config) {
 
         isUpdating = true;
         initializeMediaForType('video', mediaSource);
-        initializeMediaForType('audio', mediaSource);
-        initializeMediaForType('text', mediaSource);
-        initializeMediaForType('fragmentedText', mediaSource);
-        initializeMediaForType('embeddedText', mediaSource);
-        initializeMediaForType('muxed', mediaSource);
+        // @author Only consider video streams
+        //initializeMediaForType('audio', mediaSource);
+        //initializeMediaForType('text', mediaSource);
+        //initializeMediaForType('fragmentedText', mediaSource);
+        //initializeMediaForType('embeddedText', mediaSource);
+        //initializeMediaForType('muxed', mediaSource);
 
         createBuffers();
 
