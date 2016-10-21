@@ -9,11 +9,13 @@ BASE_URL = "http://localhost:8080/samples/live-streaming"
 URL = BASE_URL + "/%s?algo=%s&omega=%d&sigma=%d&test_nr=%d&run_nr=%d&delay=%d&report=1"
 
 RUNS = 5
-RUN_DURATION_SEC = 1 * 60
+RUN_DURATION_SEC = 10 * 60
 
 delays = [5]
-sigmas = [3, 6, 1, 2, 4] # in %
-omegas = [10, 20 , 30, 35, 50] # in %
+#sigmas = [4, 50] # in %
+#omegas = [50, 60] # in %
+sigmas = [50] # in %
+omegas = [4] # in %
 
 assert len(sigmas) == len(omegas), "WTF!"
 

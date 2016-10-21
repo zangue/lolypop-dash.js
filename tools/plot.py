@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 
-nr_runs = 3
+nr_runs = 5
 algos = ['lolypop', 'bola', 'dashjs']
 configs = [] # Number of items in this list should be the same as the number of tests done
 logfiles = None
@@ -45,12 +45,49 @@ def plot_skipped_segment(cfg):
 	plt.boxplot([pdata['lolypop'], pdata['bola'], pdata['dashjs']])
 	ax.set_xticklabels(algos, rotation=45)
 
-def get_configs():
-	data = pd.read_csv(logfiles.downloads_file)
-	pass
+#def get_configs():
+#	data = pd.read_csv(logfiles.downloads_file)
+#	pass
+
+def count_quality_transitions(df):
+	prev = None
+	count = 0
+	for index, row in df.iterrows():
+		#print type(row['bitrate'])
+		if prev is None:
+			prev = row['bitrate']
+			continue
+		if prev != row['bitrate']:
+			count = count + 1
+		prev = row['bitrate']
+	return count
+		
 
 def plot_quality_transitions(cfg):
-	pass
+	df = pd.read_csv(logfiles.downloads_file)
+	# Data for this config
+	df = df[(df['omega'] == cfg['omega']) & (df['sigma'] == cfg['sigma'])]
+	pdata = {'lolypop': [], 'bola': [], 'dashjs': []}
+	for algo in algos:
+		print algo
+		data = df[(df['algo'] == algo)]
+		for i in range(nr_runs):
+			d = data[(data['run_nr'] == (i+1))]
+			#print "algo %s run nr %d" % (algo, i+1)
+			#print d
+			pdata[algo].append(count_quality_transitions(d))
+	print pdata
+	text = '$\Omega = %.2f$' % float(float(cfg['omega'])/100)
+	text = text + '\n'
+	text = text + '$\Sigma = %.2f$' % float(float(cfg['sigma'])/100)
+	fig, ax = plt.subplots()
+	plt.xlabel('Algorithms')
+	plt.ylabel('Number of quality transitions')
+	plt.title('Quality transitions')
+	plt.boxplot([pdata['lolypop'], pdata['bola'], pdata['dashjs']])
+	ax.set_xticklabels(algos, rotation=45)
+	ax.text(0.1, 0.9,text, ha='center', va='center', transform=ax.transAxes)
+	
 
 def plot_avg_quality(cfg):
 	df = pd.read_csv(logfiles.downloads_file)
@@ -82,6 +119,8 @@ def plot_delay(cfg):
 		#print df['algo']
 		data = df[(df['algo'] == algo)]
 		for i in range(nr_runs):
+			if (i+1) is 3:
+				continue
 			d = data[(data['run_nr'] == (i+1))]
 			print d['delay'].mean()
 			pdata[algo].append(d['delay'].mean())
@@ -112,7 +151,7 @@ if __name__ == '__main__':
 	get_configs()
 	for i in range(len(configs)):
 		plot_skipped_segment(configs[i])
-		#plot_quality_transitions(configs[i])
+		plot_quality_transitions(configs[i])
 		plot_avg_quality(configs[i])
 		plot_delay(configs[i])
 	plt.show()

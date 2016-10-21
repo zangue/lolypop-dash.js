@@ -5,7 +5,7 @@ from flask_cors import CORS, cross_origin
 
 import time
 
-LOG_DIR = '/home/streaming/zangue/BA/logs/'
+LOG_DIR = '/home/tkn/Test/logs/'
 DOWNLOAD_METRIC = 0
 DELAY_METRIC = 1
 SKIPPED_METRIC = 2
@@ -97,6 +97,8 @@ def log_throughput(args):
 	log_items.append(args.get('metric_id'))
 	log_items.append(args.get('timestamp'))
 	log_items.append(args.get('type'))
+	log_items.append(args.get('bytes'))
+	log_items.append(args.get('activity_s'))
 	log_items.append(args.get('throughput_bps'))
 	log_items.append(args.get('algo'))
 	log_items.append(args.get('omega'))
@@ -153,7 +155,7 @@ def create_log_files():
 	# Create throughput log file
 	global throughput_log_file
 	throughput_log_file = LOG_DIR + str(ts) + '_throughput_log.csv'
-	header = 'metric_id,timestamp,type,throughput_bps,algo,omega,sigma,test_nr,run_nr\n'
+	header = 'metric_id,timestamp,type,bytes,activity_s,throughput_bps,algo,omega,sigma,test_nr,run_nr\n'
 	fo = open(throughput_log_file, 'wb')
 	fo.write(header)
 	fo.close()
