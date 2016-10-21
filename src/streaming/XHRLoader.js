@@ -90,20 +90,20 @@ function XHRLoader(cfg) {
 
             if (!request.checkExistenceOnly) {
                 metricsModel.addHttpRequest(
-                    request.mediaType,
-                    null,
-                    request.type,
-                    request.url,
-                    xhr.responseURL || null,
-                    request.serviceLocation || null,
-                    request.range || null,
-                    request.requestStartDate,
-                    request.firstByteDate,
-                    request.requestEndDate,
-                    xhr.status,
-                    request.duration,
-                    xhr.getAllResponseHeaders(),
-                    success ? traces : null
+                    request.mediaType,                  // Mediatype
+                    null,                               // tcpid
+                    request.type,                       // type
+                    request.url,                        // url
+                    xhr.responseURL || null,            // actualurl
+                    request.serviceLocation || null,    // serviceLocation
+                    request.range || null,              // range
+                    request.requestStartDate,           // trequest
+                    request.firstByteDate,              // tresponse
+                    request.requestEndDate,             // tfinish
+                    xhr.status,                         // responsecode
+                    request.duration,                   // mediaduration
+                    xhr.getAllResponseHeaders(),        // responseHeaders
+                    success ? traces : null             // traces
                 );
             }
         };

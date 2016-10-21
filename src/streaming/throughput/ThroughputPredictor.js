@@ -350,6 +350,8 @@ function ThroughputPredictor () {
                 'metric_id': LogClient.THROUGHPUT_METRIC,
                 'timestamp': new Date().getTime(),
                 'type': mediaType,
+                'bytes': bytes[lastIndex],
+                'activity_s': activity[lastIndex],
                 'throughput_bps': Math.floor((bytes[lastIndex] * 8) / activity[lastIndex])
             });
 

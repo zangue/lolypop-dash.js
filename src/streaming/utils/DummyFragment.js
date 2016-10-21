@@ -134,7 +134,7 @@ function DummyFragment(config) {
 
         let data = setTimingData(request);
 
-        console.log('%cReplaying segment. ' + request.index + ' quality: ' + request.quality, 'background: red; color: white');
+        //console.log('%cReplaying segment. ' + request.index + ' quality: ' + request.quality, 'background: red; color: white');
 
         eventBus.trigger(Events.LOADING_COMPLETED, {
             request: request,

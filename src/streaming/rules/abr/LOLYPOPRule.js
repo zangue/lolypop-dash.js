@@ -47,12 +47,14 @@ import MediaPlayerModel from '../../models/MediaPlayerModel';
  * @see http://arxiv.org/pdf/1603.00859v2.pdf#chapter.4
  * @author Armand Zangue
  */
-function ThroughputRule(/*config*/) {
+function LOLYPOPRule(config) {
 
     let context = this.context;
     //let videoModel = VideoModel(context).getInstance();
     let playbackController = PlaybackController(context).getInstance();
     let eventBus = EventBus(context).getInstance();
+    //let dashMetrics = config.dashMetrics;
+    //let metricsModel = config.metricsModel;
 
     let fragmentCount = {};
     let qualitySwitchCount = {};
@@ -97,7 +99,7 @@ function ThroughputRule(/*config*/) {
         let request = e.request;
         let prevQualityIdx = lastLoadedQualityIdx[request.mediaType];
 
-        if (request.mediaType === 'fragmentedText' || true === e.skipped)
+        if (request.mediaType === 'fragmentedText' || true === e.skipped || isNaN(request.index))
             return;
 
         //if (!isNaN(fallbackQualityIndex) && request.quality === fallbackQualityIndex)
@@ -106,8 +108,11 @@ function ThroughputRule(/*config*/) {
         fragmentCount[request.mediaType] += 1;
         lastLoadedQualityIdx[request.mediaType] = request.quality;
 
-        if (isNaN(prevQualityIdx) && prevQualityIdx !== request.quality)
+        if (!isNaN(prevQualityIdx) && prevQualityIdx !== request.quality)
             qualitySwitchCount[request.mediaType] += 1;
+
+        console.log('[LOLYPOP] Fragment Count: ' + fragmentCount[request.mediaType]);
+        console.log('[LOLYPOP] Qlt Swicth Count: ' + qualitySwitchCount[request.mediaType]);
     }
 
     function hasSingleRepresentation (mediaInfo) {
@@ -137,7 +142,7 @@ function ThroughputRule(/*config*/) {
             b = errors.count();
             p = a / b;
 
-            ////console.log('Error: ' + error + ' less than: ' + a + ' prob: ' + p);
+            //console.log('Error: ' + error + ' less than: ' + a + ' prob: ' + p);
 
             probalities[qualities[i].bitrate] = p;
         }
@@ -211,11 +216,12 @@ function ThroughputRule(/*config*/) {
 
         prediction = throughputPredictor.predictAvailableThroughput(playbackDeadline);
 
-        //console.log('%c[LOLYPOP ABR] [' + mediaInfo.type + ']  Prediction - throughput : ' + prediction.throughput ,'background: blue; color: white');
+        //console.log('%c[LOLYPOP ABR] [' + mediaInfo.type + ']  Prediction - throughput : ' + prediction.throughput + ' kbps' ,'background: blue; color: white');
 
         // No estimation available
         if (prediction.throughput === -1) {
             newQuality = lowestQuality;
+            //newQuality = qualities[Math.round(qualities.length/2)];
 
             //console.log('%c[LOLYPOP] [' + mediaInfo.type + '] SwitchRequest to quality: ' + newQuality.bitrate / 1000 + ' kbps - Reason : No estimation available', 'background: #222; color: #bada55');
 
@@ -228,11 +234,16 @@ function ThroughputRule(/*config*/) {
 
         maxQuality = lowestQuality;
 
+
+        //console.log('Download Success Probalities');
+        //console.log('============================');
         // Decide what quality to take next
         dsProbabilities = calcDownloadSuccessProbabilities(prediction, qualities);
 
         for (let i = 0; i < qualities.length; i++) {
             let p = dsProbabilities[qualities[i].bitrate];
+
+            //console.log('Bitrate: ' + qualities[i].bitrate/1000 + ' kpbs | 1-DSP: ' + (1-p) + ' | Prediction: ' + prediction.throughput + ' kbps | Sigma: ' + upperBoundSkippedSegments);
 
             //console.log('[LOLYPOP] [Decide] quality: ' + qualities[i].bitrate + ' 1 - dsp: ' + (1 - p) + ' upperBoundSkippedSegments: ' + upperBoundSkippedSegments);
             if ((1 - p) <= upperBoundSkippedSegments) {
@@ -291,5 +302,5 @@ function ThroughputRule(/*config*/) {
     return instance;
 }
 
-ThroughputRule.__dashjs_factory_name = 'ThroughputRule';
-export default FactoryMaker.getClassFactory(ThroughputRule);
+LOLYPOPRule.__dashjs_factory_name = 'LOLYPOPRule';
+export default FactoryMaker.getClassFactory(LOLYPOPRule);

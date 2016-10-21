@@ -460,7 +460,7 @@ function ScheduleController(config) {
          * @author Armand Zangue
          * If LOLYPOP is enable use the LOLYPOP's tune in procedure.
          */
-        if (mediaPlayerModel.getLolypopABREnabled()) {
+        if (mediaPlayerModel.getLolypopABREnabled() || true) {
             //console.log('ScheduleController: LOLYPOP tune in');
             let now = new Date().getTime() / 1000;
             let manifestInfo = currentRepresentationInfo.mediaInfo.streamInfo.manifestInfo;

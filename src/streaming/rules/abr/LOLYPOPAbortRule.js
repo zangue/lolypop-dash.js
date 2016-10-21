@@ -36,8 +36,8 @@ import Debug from '../../../core/Debug';
 import EventBus from '../../../core/EventBus';
 import Events from '../../../core/events/Events';
 
-const GRACE_TIME_THRESHOLD = 251;
-const LOADED_THRESHOLD = 80;
+const GRACE_TIME_THRESHOLD = 81;
+const LOADED_THRESHOLD = 90;
 
 function LOLYPOPAbortRule(config) {
 
@@ -118,15 +118,16 @@ function LOLYPOPAbortRule(config) {
         // Experimental
         playbackDeadline = desirableDelay - (now - rst);
 
-        console.log('Playback Deadline: ' + (playbackDeadline*1000) + ' ms');
-        console.log('Deadline threshold: ' + LOADED_THRESHOLD + ' ms');
-        console.log('Loaded: ' + loadedPercentage + ' %\n');
+        //console.log('Playback Deadline: ' + (playbackDeadline*1000) + ' ms');
+        //console.log('Deadline threshold: ' + GRACE_TIME_THRESHOLD + ' ms');
+        //console.log('Loaded: ' + loadedPercentage + ' %\n');
+        //console.log('url: ' + request.url);
 
         //console.log('%c[LOLYPOPAbortRule] Request URL : ' +  request.url, 'background: red; color: white');
         //console.log('%c[LOLYPOPAbortRule] Current Time : ' +  currenTime + ' Start Time: ' + request.startTime, 'background: red; color: white');
         //console.log('%c[LOLYPOPAbortRule] Playback deadline (sec) : ' +  playbackDeadline, 'background: red; color: white');
         //console.log(playbackController.getVideoModel().getElement());
-
+        //console.log('%c[LOLYPOPAbortRule] Playback Deadline: ' + playbackDeadline*1000 + ' ms', 'background: red; color: white');
 
         if (currenTime === 0 || isNaN(request.index) || isDone(request)) {
             //console.log('%c[LOLYPOPAbortRule] DO NOTHING for request: ' + request.index, 'background: red; color: white');
@@ -136,7 +137,7 @@ function LOLYPOPAbortRule(config) {
         }
 
 
-        if ((playbackStarted && (isStalling(streamProcessor)) ||
+        if ((/*playbackStarted && (isStalling(streamProcessor)) ||*/
             ((playbackDeadline * 1000) < GRACE_TIME_THRESHOLD) && (loadedPercentage <= LOADED_THRESHOLD))) {
             
             request.requestEndDate = new Date();
@@ -148,6 +149,13 @@ function LOLYPOPAbortRule(config) {
             scheduleController.skipSegment(request);
             console.trace();
             console.log('%c[LOLYPOPAbortRule] Asking to abandon request: ' + request.index, 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] Playback Deadline: ' + playbackDeadline*1000 + ' ms', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] GRACE_TIME_THRESHOLD: ' + GRACE_TIME_THRESHOLD + ' ms', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] Loaded: ' + loadedPercentage + ' %', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] start time: ' + request.startTime + ' %', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] start time as wct: ' + rst + ' %', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] current Time:  ' + currenTime + ' %', 'background: red; color: white');
+            console.log('%c[LOLYPOPAbortRule] now: ' + now + ' %', 'background: red; color: white');
 
             callback(switchRequest);
             

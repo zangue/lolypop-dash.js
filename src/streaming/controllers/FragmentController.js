@@ -122,7 +122,7 @@ function FragmentController(/*config*/) {
         eventBus.trigger(isInit ? Events.INIT_FRAGMENT_LOADED : Events.MEDIA_FRAGMENT_LOADED, {chunk: chunk, fragmentModel: e.sender});
     
         // Report @author Zangue
-        if (e.skipped) return; // Dont log skipped segment here
+        if (e.skipped || isInit) return; // Dont log skipped segment here
         logClient.report({
             'metric_id': LogClient.DOWNLOAD_METRIC,
             'timestamp': new Date().getTime(),
