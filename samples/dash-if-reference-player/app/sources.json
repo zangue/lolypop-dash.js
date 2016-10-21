@@ -70,15 +70,15 @@
           "name": "Akamai 24x7 reference stream - segmentTemplate"
         },
         {
-            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/Manifest.mpd",
+            "url":"http://192.168.10.190/livesim_dashif/tfdt_1/sintel_2s/Manifest.mpd",
             "name":"TKN Sintel 4K"
         },
         {
-            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/Manifest2k.mpd",
+            "url":"http://192.168.10.190/livesim_dashif/tfdt_1/sintel_2s/Manifest2k.mpd",
             "name":"TKN Sintel 2K"
         },
         {
-            "url":"http://130.149.49.253/livesim/tfdt_1/sintel_2s/ManifestHD.mpd",
+            "url":"http://192.168.10.190/livesim_dashif/tfdt_1/sintel_2s/ManifestHD.mpd",
             "name":"TKN Sintel HD"
         }
       ]
