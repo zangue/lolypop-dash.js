@@ -33,8 +33,10 @@ def plot_skipped_segment(cfg):
 		d = data[(data['run_nr'] == (i+1))]
 		print len(d.index)
 		pdata['lolypop'].append(len(d.index))
-		pdata['bola'].append(0)
-		pdata['dashjs'].append(0)
+		#pdata['bola'].append(0)
+		#pdata['dashjs'].append(0)
+		pdata['bola'].append(len(d.index))
+		pdata['dashjs'].append(len(d.index))
 	
 	print pdata
 	#plt.figure()
@@ -119,8 +121,8 @@ def plot_delay(cfg):
 		#print df['algo']
 		data = df[(df['algo'] == algo)]
 		for i in range(nr_runs):
-			if (i+1) is 3:
-				continue
+		#	if (i+1) is 3:
+		#		continue
 			d = data[(data['run_nr'] == (i+1))]
 			print d['delay'].mean()
 			pdata[algo].append(d['delay'].mean())
