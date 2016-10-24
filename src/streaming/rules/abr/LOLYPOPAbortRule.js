@@ -95,8 +95,12 @@ function LOLYPOPAbortRule(config) {
         return request.bytesLoaded >= request.bytesTotal;
     }
 
+    function now() {
+        return new Date().getTime() / 1000;
+    }
+
     function execute(rulesContext, callback) {
-        let now = new Date().getTime() / 1000;
+        //let now = new Date().getTime() / 1000;
         let mediaInfo = rulesContext.getMediaInfo();
         let streamProcessor = rulesContext.getStreamProcessor();
         let scheduleController = streamProcessor.getScheduleController();
@@ -116,7 +120,7 @@ function LOLYPOPAbortRule(config) {
         //console.log('%c[LOLYPOPAbortRule] Diff : ' +  (now - rst), 'background: red; color: white');
 
         // Experimental
-        playbackDeadline = desirableDelay - (now - rst);
+        //playbackDeadline = desirableDelay - (now() - rst);
 
         //console.log('Playback Deadline: ' + (playbackDeadline*1000) + ' ms');
         //console.log('Deadline threshold: ' + GRACE_TIME_THRESHOLD + ' ms');
@@ -136,6 +140,7 @@ function LOLYPOPAbortRule(config) {
             return;
         }
 
+        playbackDeadline = desirableDelay - (now() - rst);
 
         if ((/*playbackStarted && (isStalling(streamProcessor)) ||*/
             ((playbackDeadline * 1000) < GRACE_TIME_THRESHOLD) && (loadedPercentage <= LOADED_THRESHOLD))) {
@@ -147,15 +152,16 @@ function LOLYPOPAbortRule(config) {
             xhr.abort();
             
             scheduleController.skipSegment(request);
-            console.trace();
-            console.log('%c[LOLYPOPAbortRule] Asking to abandon request: ' + request.index, 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] Playback Deadline: ' + playbackDeadline*1000 + ' ms', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] GRACE_TIME_THRESHOLD: ' + GRACE_TIME_THRESHOLD + ' ms', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] Loaded: ' + loadedPercentage + ' %', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] start time: ' + request.startTime + ' %', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] start time as wct: ' + rst + ' %', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] current Time:  ' + currenTime + ' %', 'background: red; color: white');
-            console.log('%c[LOLYPOPAbortRule] now: ' + now + ' %', 'background: red; color: white');
+            //console.trace();
+            //console.log('%c[LOLYPOPAbortRule] Asking to abandon request: ' + request.index, 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] Playback Deadline: ' + playbackDeadline*1000 + ' ms', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] GRACE_TIME_THRESHOLD: ' + GRACE_TIME_THRESHOLD + ' ms', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] Loaded: ' + loadedPercentage + ' %', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] start time: ' + request.startTime + ' %', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] start time as wct: ' + rst + ' %', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] wallStartTime: ' + request.wallStartTime.getTime()/1000 + ' %', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] current Time:  ' + currenTime + ' %', 'background: red; color: white');
+            //console.log('%c[LOLYPOPAbortRule] now: ' + now() + ' %', 'background: red; color: white');
 
             callback(switchRequest);
             

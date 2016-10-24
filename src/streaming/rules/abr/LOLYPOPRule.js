@@ -111,8 +111,9 @@ function LOLYPOPRule(config) {
         if (!isNaN(prevQualityIdx) && prevQualityIdx !== request.quality)
             qualitySwitchCount[request.mediaType] += 1;
 
-        console.log('[LOLYPOP] Fragment Count: ' + fragmentCount[request.mediaType]);
-        console.log('[LOLYPOP] Qlt Swicth Count: ' + qualitySwitchCount[request.mediaType]);
+        //console.log('[LOLYPOP] Fragment Count: ' + fragmentCount[request.mediaType]);
+        //console.log('[LOLYPOP] Qlt Swicth Count: ' + qualitySwitchCount[request.mediaType]);
+        //console.log('[LOLYPOP] Segment Duration: ' + request.duration);
     }
 
     function hasSingleRepresentation (mediaInfo) {
@@ -158,8 +159,12 @@ function LOLYPOPRule(config) {
         return liveStartTime + startTime;
     }
 
+    function now() {
+        return new Date().getTime() / 1000;
+    }
+
     function execute(rulesContext, callback) {
-        let now = new Date().getTime() / 1000;
+        //let now = new Date().getTime() / 1000;
         let mediaInfo = rulesContext.getMediaInfo();
         let streamProcessor = rulesContext.getStreamProcessor();
         let abrController = streamProcessor.getABRController();
@@ -208,8 +213,8 @@ function LOLYPOPRule(config) {
         lastLoadedQuality = qualities[lastLoadedQualityIdx[mediaInfo.type]];
 
         // NOTE - live delay is not considered because we are using video element current time and not wall clock current time
-        playbackDeadline = fragmentStartTime - currentPlayHeadTime;
-        playbackDeadline = desirableDelay - (now - rst);
+        //playbackDeadline = fragmentStartTime - currentPlayHeadTime;
+        playbackDeadline = desirableDelay - (now() - rst);
 
         //console.log('LOLYPOP [' + mediaInfo.type + '] - Playback deadline of next segment [' + nextIndex + ']: ' + playbackDeadline);
         //playbackDeadline = 2;
