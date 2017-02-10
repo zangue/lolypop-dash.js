@@ -136,6 +136,8 @@ def index():
 	return "Simple logging server"
 
 def create_log_files():
+	print 'create log files called!'
+	#return
 	ts = int(time.time())
 	log_dir = LOG_DIR + str(ts) + '/'
 	sp = subprocess.Popen(['mkdir', log_dir])

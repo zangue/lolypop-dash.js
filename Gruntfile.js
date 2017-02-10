@@ -234,7 +234,7 @@ module.exports = function (grunt) {
         },
         githooks: {
             all: {
-                'pre-commit': 'lint'
+                //'pre-commit': 'lint'
             }
         }
     });

@@ -8,14 +8,14 @@ from random import shuffle
 BASE_URL = "http://localhost:8080/samples/live-streaming"
 URL = BASE_URL + "/%s?algo=%s&omega=%d&sigma=%d&test_nr=%d&run_nr=%d&delay=%d&report=1"
 
-RUNS = 5
+RUNS = 6
 RUN_DURATION_SEC = 10 * 60
 
 delays = [5]
 #sigmas = [4, 50] # in %
 #omegas = [50, 60] # in %
-sigmas = [50] # in %
-omegas = [4] # in %
+omegas = [2,2,2,2,     4,4,4,4,     6,6,6,6,     8,8,8,8] # in %
+sigmas = [20,30,40,50, 20,30,40,50, 20,30,40,50, 20,30,40,50] # in %
 
 assert len(sigmas) == len(omegas), "WTF!"
 

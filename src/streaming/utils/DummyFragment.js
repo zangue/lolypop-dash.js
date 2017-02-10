@@ -8,7 +8,7 @@ import EventBus from '../../core/EventBus';
 import Events from '../../core/events/Events';
 import {HTTPRequest} from '../vo/metrics/HTTPRequest';
 import ISOBoxer from 'codem-isoboxer';
-import SegmentData from './SegmentData';
+import SegmentCache from './SegmentCache';
 
 function DummyFragment(config) {
 
@@ -16,10 +16,11 @@ function DummyFragment(config) {
     const eventBus = EventBus(context).getInstance();
 
     let instance;
-    let segmentData;
+    let segmentCache;
 
     function setup() {
-        segmentData = new SegmentData();
+        //segmentCache = new SegmentData();
+        segmentCache = SegmentCache(context).getInstance();
     }
 
     function isInitializationRequest(request) {
@@ -62,7 +63,8 @@ function DummyFragment(config) {
 
     function setTimingData (request) {
         let pos = 0;
-        let buffer = segmentData.get(request.quality);
+        //let buffer = segmentData.get(request.quality);
+        let buffer = segmentCache.get(request.mediaType, request.quality);
         let data = new DataView(buffer);
         let parsedFile = ISOBoxer.parseBuffer(buffer);
 

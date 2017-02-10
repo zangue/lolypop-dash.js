@@ -55,12 +55,16 @@ function LOLYPOPAbortRule(config) {
     function setup() {
         mediaPlayerModel = MediaPlayerModel(context).getInstance();
         playbackController = PlaybackController(context).getInstance();
-        eventBus.on(Events.PLAYBACK_PLAYING, onPlaying, instance);
-        playbackStarted = false;
+        eventBus.on(Events.MEDIA_FRAGMENT_LOADED, onPlaying, instance);
+        playbackStarted = {};
     }
 
     function isInitializationRequest(request) {
         return (request && request.type && request.type === HTTPRequest.INIT_SEGMENT_TYPE);
+    }
+
+    function onMediaFragmentLoaded (e) {
+        playbackStarted[e.chunk.mediaInfo.type] = true;
     }
 
     function onPlaying(e) {
@@ -133,7 +137,7 @@ function LOLYPOPAbortRule(config) {
         //console.log(playbackController.getVideoModel().getElement());
         //console.log('%c[LOLYPOPAbortRule] Playback Deadline: ' + playbackDeadline*1000 + ' ms', 'background: red; color: white');
 
-        if (currenTime === 0 || isNaN(request.index) || isDone(request)) {
+        if (currenTime === 0 || isNaN(request.index) || isDone(request) || playbackStarted[request.mediaType]) {
             //console.log('%c[LOLYPOPAbortRule] DO NOTHING for request: ' + request.index, 'background: red; color: white');
             callback(switchRequest);
             
@@ -172,7 +176,7 @@ function LOLYPOPAbortRule(config) {
     }
 
     function reset() {
-        eventBus.off(Events.PLAYBACK_PLAYING, onPlaying, instance);
+        eventBus.off(Events.MEDIA_FRAGMENT_LOADED, onPlaying, instance);
         setup();
     }
 

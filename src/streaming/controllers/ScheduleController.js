@@ -470,6 +470,8 @@ function ScheduleController(config) {
 
             // TODO - check startTime >= now + tau | ask konstantin about the 1.5 multiplier
             startTime = ((now - liveStartTime) + fragmentDuration * 1.5) - desirableDelay;
+            // Experimental
+            //startTime += fragmentDuration;
             //startTime = (e.liveEdge + fragmentDuration * 1.5) - desirableDelay;
             //console.log('[ScheduleController] Wall Clock Time: ' + now);
             //console.log('[ScheduleController] Live available from: ' + liveStartTime);
