@@ -460,25 +460,20 @@ function ScheduleController(config) {
          * @author Armand Zangue
          * If LOLYPOP is enable use the LOLYPOP's tune in procedure.
          */
-        if (mediaPlayerModel.getLolypopABREnabled() || true) {
-            //console.log('ScheduleController: LOLYPOP tune in');
-            let now = new Date().getTime() / 1000;
-            let manifestInfo = currentRepresentationInfo.mediaInfo.streamInfo.manifestInfo;
-            let liveStartTime = manifestInfo.availableFrom.getTime() / 1000;
+        if (mediaPlayerModel.getLolypopABREnabled()) {
+            console.log("StartTime Dash.js: " + startTime);
             let fragmentDuration = currentRepresentationInfo.fragmentDuration;
+            console.log("fragmentDuration: " + fragmentDuration);
             let desirableDelay = mediaPlayerModel.getLiveDelay() || fragmentDuration * 2.5;
-
-            // TODO - check startTime >= now + tau | ask konstantin about the 1.5 multiplier
-            startTime = ((now - liveStartTime) + fragmentDuration * 1.5) - desirableDelay;
-            // Experimental
-            //startTime += fragmentDuration;
-            //startTime = (e.liveEdge + fragmentDuration * 1.5) - desirableDelay;
-            //console.log('[ScheduleController] Wall Clock Time: ' + now);
-            //console.log('[ScheduleController] Live available from: ' + liveStartTime);
-            //console.log('[ScheduleController] LOLYPOP startTime: ' + startTime);
+            console.log("Delay: " + desirableDelay)
+            startTime = (e.liveEdge + fragmentDuration * 1.5) - desirableDelay;
+            console.log("StartTime LOLYPOP: " + startTime);
         }
 
         request = adapter.getFragmentRequestForTime(streamProcessor, currentRepresentationInfo, startTime, {ignoreIsFinished: true});
+
+        console.log("Request");
+        console.log(request);
 
         seekTarget = currentLiveStart;
         if (isNaN(currentLiveStart) || request.startTime > currentLiveStart) {

@@ -146,6 +146,8 @@ function LOLYPOPAbortRule(config) {
 
         playbackDeadline = desirableDelay - (now() - rst);
 
+        console.log("playbackDeadline: " + playbackDeadline);
+
         if ((/*playbackStarted && (isStalling(streamProcessor)) ||*/
             ((playbackDeadline * 1000) < GRACE_TIME_THRESHOLD) && (loadedPercentage <= LOADED_THRESHOLD))) {
             

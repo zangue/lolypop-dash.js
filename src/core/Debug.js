@@ -105,7 +105,7 @@ function Debug() {
         });
 
         if (logToBrowserConsole) {
-            //console.log(message);
+            console.log(message);
         }
 
         eventBus.trigger(Events.LOG, {message: message});

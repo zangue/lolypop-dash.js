@@ -70,10 +70,11 @@ function ABRRulesCollection() {
                 })
             );
 
-            abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
-                metricsModel: metricsModel,
-                dashMetrics: DashMetrics(context).getInstance()
-            }));
+            // abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
+            //     metricsModel: metricsModel,
+            //     dashMetrics: DashMetrics(context).getInstance()
+            // }));
+            abandonFragmentRules.push(AbandonRequestsRule(context).create());
         } else if (mediaPlayerModel.getBufferOccupancyABREnabled()) {
             qualitySwitchRules.push(
                 BolaRule(context).create({
@@ -81,16 +82,16 @@ function ABRRulesCollection() {
                     dashMetrics: DashMetrics(context).getInstance()
                 })
             );
-            //abandonFragmentRules.push(
-            //    BolaAbandonRule(context).create({
-            //        metricsModel: metricsModel,
-            //        dashMetrics: DashMetrics(context).getInstance()
-            //    })
-            //);
-            abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
-                metricsModel: metricsModel,
-                dashMetrics: DashMetrics(context).getInstance()
-            }));
+            abandonFragmentRules.push(
+               BolaAbandonRule(context).create({
+                   metricsModel: metricsModel,
+                   dashMetrics: DashMetrics(context).getInstance()
+               })
+            );
+            // abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
+            //     metricsModel: metricsModel,
+            //     dashMetrics: DashMetrics(context).getInstance()
+            // }));
         } else {
             qualitySwitchRules.push(
                 ThroughputRule(context).create({
@@ -107,11 +108,11 @@ function ABRRulesCollection() {
             );
 
             qualitySwitchRules.push(InsufficientBufferRule(context).create({metricsModel: metricsModel}));
-            //abandonFragmentRules.push(AbandonRequestsRule(context).create());
-            abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
-                metricsModel: metricsModel,
-                dashMetrics: DashMetrics(context).getInstance()
-            }));
+            abandonFragmentRules.push(AbandonRequestsRule(context).create());
+            // abandonFragmentRules.push(LOLYPOPAbortRule(context).create({
+            //     metricsModel: metricsModel,
+            //     dashMetrics: DashMetrics(context).getInstance()
+            // }));
         }
     }
 

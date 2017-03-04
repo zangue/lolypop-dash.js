@@ -65,6 +65,8 @@ function DummyFragment(config) {
         let pos = 0;
         //let buffer = segmentData.get(request.quality);
         let buffer = segmentCache.get(request.mediaType, request.quality);
+        console.log("Cached Segment");
+        console.log(buffer);
         let data = new DataView(buffer);
         let parsedFile = ISOBoxer.parseBuffer(buffer);
 

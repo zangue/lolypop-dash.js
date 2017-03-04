@@ -28,6 +28,10 @@ function SegmentCache () {
         let bytes = e.response;
         let isInit = isInitializationRequest(request);
 
+        console.log("CAACHINGGGGGGGG");
+        console.log(e.request);
+        console.log(e.response);
+
         // Do not cache initialization segments
         if (isInit)
             return;
